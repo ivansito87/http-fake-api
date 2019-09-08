@@ -50,11 +50,40 @@ class App extends Component {
   };
 
   handleDelete = post => {
+    // we are going to use the original state in case something goes wrong in the server
+    // we need to store the data in a variable to use it later
+    const originalPosts = this.state.posts;
+
     axios.delete(`${apiEndPoint}/${post.id}`)
       .then(r => {
+        // We will use this line of code below to simulate that there was an error
+        // while requesting the delete method,
+
+        // throw new Error("the process failed");
         const posts = this.state.posts.filter(res => res.id !== post.id);
         this.setState({ posts });
-      }).catch(err => err ? console.log(err.message) : "");
+      })
+      // We can use the catch method from axios to re-render the state in case somthing happened in the
+      // back end like this
+      .catch(err => {
+        // if we have an error that means that our promise was rejected there fore we don't update the state
+        // instead we use the previous state
+        /*
+        * There are two kinds of errors
+        * Expected (404: not found) if you are trying to delete an item that does not exists in
+        * our database the server will respond with a 400 status meaning that the request was not found  // <- this errors are CLIENT ERRORS
+        * Expected (400: bad request) this happens when we are trying to submit a form with invalid data // errors that the user created there for we should try to give feedback
+        *
+        * Unexpected (network down, server down, db down, bugs) this are errors that should not happen in any substances we need to log them
+        * */
+        if (err) {
+          alert("There was an error while deleting the post");
+          this.setState({ posts: originalPosts });
+          console.log(err.message);
+        }
+
+
+      });
 
   };
 
